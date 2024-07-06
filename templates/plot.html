@@ -9,6 +9,7 @@
 <body>
     <h1>Stock Candlestick Chart</h1>
     <div id="chart"></div>
+    <button id="prev-tick">Previous Tick</button>
     <button id="next-tick">Next Tick</button>
     <a href="/">Back</a>
     <script>
@@ -17,26 +18,62 @@
 
         var currentTick = 0;
         var stockSymbol = "{{ stock_symbol }}";
+        var tickData = {
+            x: [],
+            open: [],
+            high: [],
+            low: [],
+            close: []
+        };
 
         document.getElementById('next-tick').addEventListener('click', function() {
             fetch(`/tick/${currentTick}?symbol=${stockSymbol}`)
                 .then(response => response.json())
                 .then(data => {
                     if (Object.keys(data).length !== 0) {
+                        tickData.x.push(data.Date);
+                        tickData.open.push(data.Open);
+                        tickData.high.push(data.High);
+                        tickData.low.push(data.Low);
+                        tickData.close.push(data.Close);
+
                         var update = {
-                            x: [[data.Date]],
-                            open: [[data.Open]],
-                            high: [[data.High]],
-                            low: [[data.Low]],
-                            close: [[data.Close]]
+                            x: [tickData.x],
+                            open: [tickData.open],
+                            high: [tickData.high],
+                            low: [tickData.low],
+                            close: [tickData.close]
                         };
 
-                        Plotly.extendTraces('chart', update, [0])
+                        Plotly.update('chart', update);
                         currentTick++;
                     } else {
                         alert('No more data available.');
                     }
                 });
+        });
+
+        document.getElementById('prev-tick').addEventListener('click', function() {
+            if (currentTick > 0) {
+                currentTick--;
+                tickData.x.pop();
+                tickData.open.pop();
+                tickData.high.pop();
+                tickData.low.pop();
+                tickData.close.pop();
+
+                var update = {
+                    x: [tickData.x],
+                    open: [tickData.open],
+                    high: [tickData.high],
+                    low: [tickData.low],
+                    close: [tickData.close]
+                };
+
+                Plotly.update('chart', update);
+            } else {
+                alert('No previous data available.');
+            }
         });
     </script>
 </body>
