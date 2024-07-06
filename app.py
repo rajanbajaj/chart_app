@@ -3,6 +3,7 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from rajan_nse.CandleStickPatterns import CandleStickPatterns
 from pandas import DataFrame
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -10,39 +11,9 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-# @app.route('/plot', methods=['POST'])
-# def plot():
-#     stock_symbol = request.form['symbol']
-#     candleStickPatterns = CandleStickPatterns()
-#     data = candleStickPatterns.getHistoricalData(stock_symbol)
-#     data = DataFrame(data['data'])
-#     data = data.tail(70)  # Get the last 70 days of data
-#     data.reset_index(inplace=True)
-
-#     fig = make_subplots(rows=1, cols=1)
-#     candlestick = go.Candlestick(x=data['Date'],
-#                                  open=data['Open'],
-#                                  high=data['High'],
-#                                  low=data['Low'],
-#                                  close=data['Close'])
-    
-#     fig.add_trace(candlestick)
-#     fig.update_layout(title=f'Candlestick chart for {stock_symbol}',
-#                       xaxis_title='Date',
-#                       yaxis_title='Price')
-
-#     graphJSON = fig.to_json()
-#     return render_template('plot.html', graphJSON=graphJSON, stock_symbol=stock_symbol)
-
 @app.route('/tick/<int:tick>', methods=['GET'])
 def tick(tick):
-    stock_symbol = request.args.get('symbol')
-    candleStickPatterns = CandleStickPatterns()
-    data = candleStickPatterns.getHistoricalData(stock_symbol)
-    data = DataFrame(data['data'])
-    data = data.tail(70)  # Get the last 70 days of data
-    data.reset_index(inplace=True)
-    data = data.reindex(index=data.index[::-1])
+    data = pd.read_csv('data.csv')
 
     if tick < len(data):
         tick_data = data.iloc[tick]
@@ -64,9 +35,12 @@ def plot():
     data = DataFrame(data["data"])
     data = data.tail(70)  # Get the last 70 days of data
     data.reset_index(inplace=True)
-    data = data.reindex(index=data.index[::-1])
-    data = data.head(1)
 
+    #  reverse and save data
+    data = data.reindex(index=data.index[::-1])
+    data.to_csv('data.csv')
+
+    data = data.head(1)
     fig = make_subplots(rows=1, cols=1)
     candlestick = go.Candlestick(x=data['CH_TIMESTAMP'],
                                  open=data['CH_OPENING_PRICE'],
