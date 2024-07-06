@@ -9,10 +9,35 @@
 <body>
     <h1>Stock Candlestick Chart</h1>
     <div id="chart"></div>
+    <button id="next-tick">Next Tick</button>
+    <a href="/">Back</a>
     <script>
         var graph = {{ graphJSON|safe }};
         Plotly.newPlot('chart', graph.data, graph.layout);
+
+        var currentTick = 0;
+        var stockSymbol = "{{ stock_symbol }}";
+
+        document.getElementById('next-tick').addEventListener('click', function() {
+            fetch(`/tick/${currentTick}?symbol=${stockSymbol}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (Object.keys(data).length !== 0) {
+                        var update = {
+                            x: [[data.Date]],
+                            open: [[data.Open]],
+                            high: [[data.High]],
+                            low: [[data.Low]],
+                            close: [[data.Close]]
+                        };
+
+                        Plotly.extendTraces('chart', update, [0])
+                        currentTick++;
+                    } else {
+                        alert('No more data available.');
+                    }
+                });
+        });
     </script>
-    <a href="/">Back</a>
 </body>
 </html>
