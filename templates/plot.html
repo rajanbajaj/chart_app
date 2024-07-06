@@ -14,16 +14,15 @@
     <a href="/">Back</a>
     <script>
         var graph = {{ graphJSON|safe }};
-        Plotly.newPlot('chart', graph.data, graph.layout);
-
-        var currentTick = 0;
+        Plotly.newPlot('chart', graph.data, graph.layout, {displayModeBar: false});        var currentTick = 0;
         var stockSymbol = "{{ stock_symbol }}";
         var tickData = {
             x: [],
             open: [],
             high: [],
             low: [],
-            close: []
+            close: [],
+            volume: []
         };
 
         document.getElementById('next-tick').addEventListener('click', function() {
@@ -36,8 +35,9 @@
                         tickData.high.push(data.High);
                         tickData.low.push(data.Low);
                         tickData.close.push(data.Close);
+                        tickData.volume.push(data.Volume);
 
-                        var update = {
+                        var updateCandlestick = {
                             x: [tickData.x],
                             open: [tickData.open],
                             high: [tickData.high],
@@ -45,7 +45,13 @@
                             close: [tickData.close]
                         };
 
-                        Plotly.update('chart', update);
+                        var updateBar = {
+                            x: [tickData.x],
+                            y: [tickData.volume]
+                        };
+
+                        Plotly.update('chart', updateCandlestick, {}, [0]);
+                        Plotly.update('chart', updateBar, {}, [1]);
                         currentTick++;
                     } else {
                         alert('No more data available.');
@@ -61,8 +67,9 @@
                 tickData.high.pop();
                 tickData.low.pop();
                 tickData.close.pop();
+                tickData.volume.pop();
 
-                var update = {
+                var updateCandlestick = {
                     x: [tickData.x],
                     open: [tickData.open],
                     high: [tickData.high],
@@ -70,7 +77,13 @@
                     close: [tickData.close]
                 };
 
-                Plotly.update('chart', update);
+                var updateBar = {
+                    x: [tickData.x],
+                    y: [tickData.volume]
+                };
+
+                Plotly.update('chart', updateCandlestick, {}, [0]);
+                Plotly.update('chart', updateBar, {}, [1]);
             } else {
                 alert('No previous data available.');
             }

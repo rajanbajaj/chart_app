@@ -22,7 +22,8 @@ def tick(tick):
             'Open': tick_data['CH_OPENING_PRICE'],
             'High': tick_data['CH_TRADE_HIGH_PRICE'],
             'Low': tick_data['CH_TRADE_LOW_PRICE'],
-            'Close': tick_data['CH_CLOSING_PRICE']
+            'Close': tick_data['CH_CLOSING_PRICE'],
+            'Volume': float(tick_data['CH_TOT_TRADED_QTY'])
         })
     else:
         return jsonify({}), 404
@@ -50,18 +51,28 @@ def plot():
     missing_dates = full_date_range.difference(data['CH_TIMESTAMP'])
 
     data = data.head(1)
-    fig = make_subplots(rows=1, cols=1)
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
+                    row_heights=[0.6, 0.4], vertical_spacing=0.02)
+
     candlestick = go.Candlestick(x=data['CH_TIMESTAMP'],
                                  open=data['CH_OPENING_PRICE'],
                                  high=data['CH_TRADE_HIGH_PRICE'],
                                  low=data['CH_TRADE_LOW_PRICE'],
                                  close=data['CH_CLOSING_PRICE'])
     
-    fig.add_trace(candlestick)
+    bar = go.Bar(x=data['CH_TIMESTAMP'], y=data['CH_TOT_TRADED_QTY'], name='Volume')
+
+    fig.add_trace(candlestick, row=1, col=1)
+    fig.add_trace(bar, row=2, col=1)
     fig.update_xaxes(rangebreaks=[dict(values=missing_dates)])
-    fig.update_layout(title=f'Candlestick chart for {stock_symbol}',
-                      xaxis_title='Date',
-                      yaxis_title='Price')
+    fig.update_layout(
+        title=f'Candlestick chart for {stock_symbol}',
+        xaxis_title='Date',
+        yaxis_title='Price',
+        yaxis2_title='Volume',
+        height=500,  # Adjust height as needed
+        xaxis_rangeslider_visible=False
+    )
     
     graphJSON = fig.to_json()
     return render_template('plot.html', graphJSON=graphJSON,  stock_symbol=stock_symbol)
