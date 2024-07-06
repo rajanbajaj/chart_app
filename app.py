@@ -40,6 +40,15 @@ def plot():
     data = data.reindex(index=data.index[::-1])
     data.to_csv('data.csv')
 
+    # Convert 'CH_TIMESTAMP' to datetime
+    data['CH_TIMESTAMP'] = pd.to_datetime(data['CH_TIMESTAMP'])
+    
+    # Find the complete date range
+    full_date_range = pd.date_range(start=data['CH_TIMESTAMP'].min(), end=data['CH_TIMESTAMP'].max())
+    
+    # Identify missing dates
+    missing_dates = full_date_range.difference(data['CH_TIMESTAMP'])
+
     data = data.head(1)
     fig = make_subplots(rows=1, cols=1)
     candlestick = go.Candlestick(x=data['CH_TIMESTAMP'],
@@ -49,6 +58,7 @@ def plot():
                                  close=data['CH_CLOSING_PRICE'])
     
     fig.add_trace(candlestick)
+    fig.update_xaxes(rangebreaks=[dict(values=missing_dates)])
     fig.update_layout(title=f'Candlestick chart for {stock_symbol}',
                       xaxis_title='Date',
                       yaxis_title='Price')
