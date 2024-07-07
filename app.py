@@ -54,6 +54,9 @@ def plot():
     to_date = date.today() - timedelta(days=100)
     data = candleStickPatterns.getHistoricalData(stock_symbol, to_date)
     data = DataFrame(data["data"])
+    data = data.tail(70)  # Get the last 70 days of data
+    data.reset_index(inplace=True)
+    data = data.reindex(index=data.index[::-1])
 
     # Find the complete date range
     # Identify missing dates

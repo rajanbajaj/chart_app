@@ -15,6 +15,7 @@
     <script>
 
         var graph = {{ graphJSON|safe }};
+        var oldestDateInit = new Date(graph.data[0]['x'][0]);
         Plotly.newPlot('chart', graph.data, graph.layout, {displayModeBar: true});        var currentTick = 0;
         var stockSymbol = "{{ stock_symbol }}";
         var tickData = {
@@ -27,7 +28,6 @@
         };
 
         function isDatePresentInTickData(date) {
-            console.log(date, tickData.x, tickData.x.includes(date))
             return tickData.x.includes(date);
         }
 
@@ -94,6 +94,22 @@
                 Plotly.update('chart', updateBar, {}, [1]);
             } else {
                 alert('No previous data available.');
+            }
+        });
+
+        // Capture resize event
+        var resizeEvent = new Event('resizeEvent');
+
+        document.getElementById('chart').on('plotly_relayout', function(eventdata){
+            if (eventdata['xaxis.range[0]'] && eventdata['xaxis.range[1]']) {
+                var oldestDate = new Date(eventdata['xaxis.range[0]']);
+                if (oldestDateInit > oldestDate) {
+                    // reload plot with olderstDataInit
+                    
+                }
+                console.log('Oldest date in x-axis after resize:', oldestDate, oldestDateInit > oldestDate);
+            } else {
+                console.log('eventdata:', eventdata);
             }
         });
     </script>
