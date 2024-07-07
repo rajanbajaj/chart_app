@@ -13,45 +13,53 @@
     <button id="next-tick">Next Tick</button>
     <a href="/">Back</a>
     <script>
+
         var graph = {{ graphJSON|safe }};
-        Plotly.newPlot('chart', graph.data, graph.layout, {displayModeBar: false});        var currentTick = 0;
+        Plotly.newPlot('chart', graph.data, graph.layout, {displayModeBar: true});        var currentTick = 0;
         var stockSymbol = "{{ stock_symbol }}";
         var tickData = {
-            x: [],
-            open: [],
-            high: [],
-            low: [],
-            close: [],
-            volume: []
+            x: graph.data[0]['x'],
+            open: graph.data[0]['open'],
+            high: graph.data[0]['high'],
+            low: graph.data[0]['low'],
+            close: graph.data[0]['close'],
+            volume: graph.data[1]['y']
         };
+
+        function isDatePresentInTickData(date) {
+            console.log(date, tickData.x, tickData.x.includes(date))
+            return tickData.x.includes(date);
+        }
 
         document.getElementById('next-tick').addEventListener('click', function() {
             fetch(`/tick/${currentTick}?symbol=${stockSymbol}`)
                 .then(response => response.json())
                 .then(data => {
                     if (Object.keys(data).length !== 0) {
-                        tickData.x.push(data.Date);
-                        tickData.open.push(data.Open);
-                        tickData.high.push(data.High);
-                        tickData.low.push(data.Low);
-                        tickData.close.push(data.Close);
-                        tickData.volume.push(data.Volume);
-
-                        var updateCandlestick = {
-                            x: [tickData.x],
-                            open: [tickData.open],
-                            high: [tickData.high],
-                            low: [tickData.low],
-                            close: [tickData.close]
-                        };
-
-                        var updateBar = {
-                            x: [tickData.x],
-                            y: [tickData.volume]
-                        };
-
-                        Plotly.update('chart', updateCandlestick, {}, [0]);
-                        Plotly.update('chart', updateBar, {}, [1]);
+                        if (!isDatePresentInTickData(data.Date)) {
+                            tickData.x.push(data.Date);
+                            tickData.open.push(data.Open);
+                            tickData.high.push(data.High);
+                            tickData.low.push(data.Low);
+                            tickData.close.push(data.Close);
+                            tickData.volume.push(data.Volume);
+    
+                            var updateCandlestick = {
+                                x: [tickData.x],
+                                open: [tickData.open],
+                                high: [tickData.high],
+                                low: [tickData.low],
+                                close: [tickData.close]
+                            };
+    
+                            var updateBar = {
+                                x: [tickData.x],
+                                y: [tickData.volume]
+                            };
+    
+                            Plotly.update('chart', updateCandlestick, {}, [0]);
+                            Plotly.update('chart', updateBar, {}, [1]);
+                        }
                         currentTick++;
                     } else {
                         alert('No more data available.');
