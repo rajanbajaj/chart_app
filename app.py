@@ -90,7 +90,7 @@ def plot():
         xaxis2_title='Date',
         yaxis_title='Price',
         yaxis2_title='Volume',
-        height=500,  # Adjust height as needed
+        height=1000,  # Adjust height as needed
         xaxis_rangeslider_visible=False
     )
     
