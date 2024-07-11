@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-from rajan_nse.CandleStickPatterns import CandleStickPatterns
+from rajan_nse.NseData import NseData
 from pandas import DataFrame
 import pandas as pd
 from datetime import date, timedelta
@@ -33,10 +33,10 @@ def tick(tick):
 @app.route('/plot', methods=['POST'])
 def plot():
     stock_symbol = request.form['symbol']
-    candleStickPatterns = CandleStickPatterns()
+    nseData = NseData()
     
     # get latest 70 days data
-    data = candleStickPatterns.getHistoricalData(stock_symbol)
+    data = nseData.getHistoricalData(stock_symbol)
     data = DataFrame(data["data"])
 
     #  reverse and save data
@@ -52,7 +52,7 @@ def plot():
 
     # get previous 70 days data
     to_date = date.today() - timedelta(days=100)
-    data = candleStickPatterns.getHistoricalData(stock_symbol, to_date)
+    data = nseData.getHistoricalData(stock_symbol, to_date=to_date)
     data = DataFrame(data["data"])
     data = data.tail(70)  # Get the last 70 days of data
     data.reset_index(inplace=True)
@@ -93,6 +93,11 @@ def plot():
         height=1000,  # Adjust height as needed
         xaxis_rangeslider_visible=False
     )
+
+    # add 52 weeks high low values
+    highLowData = nseData.fiftyTwoWeekHighLow(stock_symbol)
+    fig.add_hline(y=highLowData['high'])
+    fig.add_hline(y=highLowData['low'])
     
     graphJSON = fig.to_json()
     return render_template('plot.html', graphJSON=graphJSON,  stock_symbol=stock_symbol)
